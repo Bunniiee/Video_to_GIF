@@ -3,7 +3,7 @@ python-dotenv==1.0.1
 moviepy==1.0.3
 yt-dlp==2025.6.9
 openai==1.12.0
-whisper==1.1.10
+git+https://github.com/openai/whisper.git
 requests==2.32.4
 Werkzeug==3.0.1
 gunicorn==21.2.0
