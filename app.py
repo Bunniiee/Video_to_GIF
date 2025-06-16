@@ -39,7 +39,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 
 # Initialize OpenAI client
-client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+client = openai.Client(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Initialize Whisper model
 print("Initializing Whisper model...")
