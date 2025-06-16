@@ -39,7 +39,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 
 # Initialize OpenAI client
-client = openai.Client(api_key=os.getenv('OPENAI_API_KEY'))
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Initialize Whisper model
 print("Initializing Whisper model...")
@@ -310,7 +310,7 @@ def find_relevant_segments(transcript, theme_prompt, num_segments=3):
         {[f"{i}: {s['text']}" for i, s in enumerate(transcript)]}
         """
         
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that identifies engaging moments in video transcripts."},
@@ -554,8 +554,9 @@ def get_gif(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 if __name__ == '__main__':
-    # Use environment variable for port, default to 5000
-    port = int(os.getenv('PORT', 5000))
+    # Get port from environment variable or use default
+    port = int(os.getenv('PORT', 10000))
     # Only run in debug mode if not in production
     debug = os.getenv('FLASK_ENV') != 'production'
+    # Bind to all interfaces
     app.run(host='0.0.0.0', port=port, debug=debug) 
