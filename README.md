@@ -18,7 +18,7 @@ A web application that converts videos to GIFs with custom captions. You can eit
 - Flask
 - MoviePy
 - Pillow
-- pytube
+- yt-dlp
 - FFmpeg
 - ImageMagick
 - Other Python dependencies listed in requirements.txt
@@ -107,4 +107,16 @@ The application consists of two main parts:
 
 ## License
 
-MIT License 
+MIT License
+
+## How to Improve
+
+1. Implement parallel video downloading with consistent speeds and limit initial quality to reduce the 11MB file size, while adding proper progress tracking.
+
+2. Switch to a smaller Whisper model for faster processing of 135 segments, implement transcription caching, and prioritize YouTube captions as the primary source.
+
+3. Process multiple GIFs in parallel instead of sequentially, reduce temporary file creation, and optimize FFmpeg parameters for faster conversion.
+
+4. Switch from development to production WSGI server, implement proper logging levels, and add request rate limiting for better API performance.
+
+5. Implement caching for successful video processing results, add multiple fallback options for each step, and add automatic cleanup of temporary files. 

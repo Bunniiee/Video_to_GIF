@@ -2,7 +2,6 @@ flask==3.0.2
 flask-cors==4.0.0
 moviepy==1.0.3
 Pillow==10.2.0
-pytube==15.0.0
 python-dotenv==1.0.1
 requests==2.31.0
 openai==1.12.0
