@@ -1,6 +1,7 @@
 import os
 import subprocess
 from flask import Flask, request, jsonify, render_template, send_file
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, ColorClip
 import yt_dlp
@@ -17,29 +18,23 @@ from moviepy.config import change_settings
 import whisper
 from pathlib import Path
 
+# Configure ImageMagick path
+change_settings({"IMAGEMAGICK_BINARY": r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"})
+
 # Load environment variables
 load_dotenv()
 
-# Configure ImageMagick path based on environment
-if os.getenv('FLASK_ENV') == 'production':
-    IMAGEMAGICK_PATH = '/usr/bin/magick'
-    FFMPEG_PATH = '/usr/bin/ffmpeg'
-else:
-    IMAGEMAGICK_PATH = r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"
-    FFMPEG_PATH = r"C:\ffmpeg\bin\ffmpeg.exe"
-
-# Configure ImageMagick path
-change_settings({"IMAGEMAGICK_BINARY": IMAGEMAGICK_PATH})
-
-# Set FFmpeg path for Whisper
-os.environ["PATH"] = os.path.dirname(FFMPEG_PATH) + os.pathsep + os.environ["PATH"]
-
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 
 # Initialize OpenAI client
-openai.api_key = os.getenv('OPENAI_API_KEY')
+client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# Set FFmpeg path for Whisper
+FFMPEG_PATH = r"C:\ffmpeg\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe"
+os.environ["PATH"] = os.path.dirname(FFMPEG_PATH) + os.pathsep + os.environ["PATH"]
 
 # Initialize Whisper model
 print("Initializing Whisper model...")
@@ -60,6 +55,7 @@ def check_ffmpeg():
         # Try multiple possible FFmpeg paths
         ffmpeg_paths = [
             'ffmpeg',  # System PATH
+            'C:\\ffmpeg\\ffmpeg-master-latest-win64-gpl\\bin\\ffmpeg.exe',  # Your specific installation
             'C:\\ffmpeg\\bin\\ffmpeg.exe',  # Windows default installation
             'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe',
             'C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe'
@@ -310,7 +306,7 @@ def find_relevant_segments(transcript, theme_prompt, num_segments=3):
         {[f"{i}: {s['text']}" for i, s in enumerate(transcript)]}
         """
         
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that identifies engaging moments in video transcripts."},
@@ -474,12 +470,6 @@ def create_gif_with_captions(video_path, segments, duration=3):
         print(f"Error creating GIFs: {str(e)}")
         return []
 
-@app.route('/')
-def index():
-    return render_template('index.html', 
-                         ffmpeg_installed=check_ffmpeg(),
-                         imagemagick_installed=check_imagemagick())
-
 @app.route('/process', methods=['POST'])
 def process_video():
     try:
@@ -554,9 +544,4 @@ def get_gif(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 if __name__ == '__main__':
-    # Get port from environment variable or use default
-    port = int(os.getenv('PORT', 10000))
-    # Only run in debug mode if not in production
-    debug = os.getenv('FLASK_ENV') != 'production'
-    # Bind to all interfaces
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+    app.run(debug=True) 
